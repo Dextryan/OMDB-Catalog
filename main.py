@@ -17,7 +17,8 @@ def write_options():
     print("1. Persquisar filme por nome")
     print("2. Adicionar o último filme pesquisado aos favoritos")
     print("3. Listar filmes favoritos")
-    print("4. Sair")
+    print("4. Remover filme da lista de favoritos")
+    print("5. Sair")
 
 
 def search_movie(movie_name):
@@ -32,6 +33,9 @@ def search_movie(movie_name):
     url = f"http://www.omdbapi.com/?t={movie_name}&type=movie&apikey=fe59540c"
     response = requests.get(url)
     movie_data = response.json()
+    if (movie_data["Response"] == "False"):
+        print("Filme não encontrado")
+        return None
     return movie.Movie(movie_data)
 
 
@@ -49,6 +53,9 @@ def add_to_favorites(movie):
     if (os.path.exists(list_path)):
         with open(list_path, "r") as f:
             favorites = json.load(f)
+        if (movie.__dict__() in favorites):
+            print(f"{movie.title} já está nos favoritos")
+            return
         favorites.append(movie.__dict__())
         with open(list_path, "w") as f:
             json.dump(favorites, f)
@@ -64,6 +71,8 @@ def add_to_favorites(movie):
             favorites = [movie.__dict__()]
             json.dump(favorites, f)
 
+    print(f"{movie.title} adicionado aos favoritos")
+
 
 def list_favorites():
     """Listar filmes favoritos
@@ -74,6 +83,32 @@ def list_favorites():
             favorites = json.load(f)
             for favorite in favorites:
                 print(movie.Movie(favorite))
+                print("")
+    else:
+        print("Nenhum filme favorito")
+
+
+def remove_favorite(movie_name):
+    """Remover filme dos favoritos
+
+    Args:
+        movie_name (String): Nome do filme a ser removido
+    """
+    path = os.path.expanduser("~/Documents/FavoriteMovies/favorites.json")
+    if (os.path.exists(path)):
+        with open(path, "r") as f:
+            favorites = json.load(f)
+            # Caso o filme não esteja na lista de favoritos, a execução da função é interrompida
+            if movie_name not in [favorite["Title"] for favorite in favorites]:
+                print(f"{movie_name} não está nos favoritos")
+                return
+            # Usa list comprehension para criar uma nova lista sem o filme a ser removido
+            favorites = [
+                favorite for favorite in favorites if favorite["Title"] != movie_name]
+        with open(path, "w") as f:
+            json.dump(favorites, f)
+        print(f"{movie_name} removido dos favoritos")
+
     else:
         print("Nenhum filme favorito")
 
@@ -89,6 +124,7 @@ def main():
         try:
             option = int(input("Digite a opção: "))
         except ValueError:
+            clear()
             print("Opção inválida!")
             continue
 
@@ -96,22 +132,27 @@ def main():
             clear()
             name = input("Digite o nome do filme: ")
             movie = search_movie(name)
-            print(movie)
+            if movie is not None:
+                print(movie)
         elif option == 2:
             clear()
             if movie is None:
                 print("Nenhum filme pesquisado")
             else:
                 add_to_favorites(movie)
-                print(f"{movie.title} adicionado aos favoritos")
                 movie = None
         elif option == 3:
             clear()
             list_favorites()
             pass
         elif option == 4:
+            clear()
+            name = input("Digite o nome do filme: ")
+            remove_favorite(name)
+        elif option == 5:
             break
         else:
+            clear()
             print("Opção inválida!")
 
 
