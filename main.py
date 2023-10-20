@@ -21,16 +21,17 @@ def write_options():
     print("5. Sair")
 
 
-def search_movie(movie_name):
+def search_movie(movie_name, api_key):
     """Pesquisar filme por nome
 
     Args:
         movie_name (String): Nome do filme
+        api_key (String): Chave de acesso à API
 
     Returns:
         Objeto "Movie": Objeto contendo as informações do filme
     """
-    url = f"http://www.omdbapi.com/?t={movie_name}&type=movie&apikey=fe59540c"
+    url = f"http://www.omdbapi.com/?t={movie_name}&type=movie&apikey={api_key}"
     response = requests.get(url)
     movie_data = response.json()
     if (movie_data["Response"] == "False"):
@@ -114,6 +115,7 @@ def remove_favorite(movie_name):
 
 
 def main():
+    api_key = "fe59540c"
     clear()
     movie = None
     # Loop principal, enquanto o usuário não digitar 4, o programa continua rodando
@@ -131,7 +133,7 @@ def main():
         if option == 1:
             clear()
             name = input("Digite o nome do filme: ")
-            movie = search_movie(name)
+            movie = search_movie(name, api_key)
             if movie is not None:
                 print(movie)
         elif option == 2:
